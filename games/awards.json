@@ -1,0 +1,504 @@
+{
+  "title": "Letterboxd Movie Club Awards",
+  "subtitle": "The 2026 Trivia Gala",
+  "asOf": "Letterboxd data as of November 25, 2026",
+  "rounds": [
+    {
+      "title": "The Critics' Circle",
+      "blurb": "How did the club rate its own picks? Averages use every member's Letterboxd rating of the film.",
+      "questions": [
+        {
+          "prompt": "Which pick earned the HIGHEST average club rating?",
+          "choices": [
+            "The Truman Show",
+            "Project Hail Mary",
+            "Eternal Sunshine of the Spotless Mind",
+            "The Matrix"
+          ],
+          "answer": "Project Hail Mary",
+          "note": "4.54★ from 14 members. The Matrix was next at 4.44★, then The Truman Show at 4.27★."
+        },
+        {
+          "prompt": "Which pick earned the LOWEST average club rating?",
+          "choices": [
+            "The Vow",
+            "Somewhere in Time",
+            "A Dog's Purpose",
+            "The Phantom of the Opera"
+          ],
+          "answer": "Somewhere in Time",
+          "note": "2.38★ from 8 members. The Vow (2.64★) and The Phantom of the Opera (2.75★) weren't far behind."
+        },
+        {
+          "prompt": "Which pick was rated by the MOST club members?",
+          "choices": [
+            "Eternal Sunshine of the Spotless Mind",
+            "Instructions Not Included",
+            "GoodFellas",
+            "The Shape of Water"
+          ],
+          "answer": "Instructions Not Included",
+          "note": "17 members rated it. The other three tied at 16."
+        },
+        {
+          "prompt": "Rounded to the nearest half star, what's The Matrix's club average?",
+          "choices": [
+            "3.5★",
+            "4★",
+            "4.5★",
+            "5★"
+          ],
+          "answer": "4.5★",
+          "note": "4.44★ from 9 members. Nobody gave it less than 4★."
+        },
+        {
+          "prompt": "How many of the 40 picks finished with a club average of 4★ or higher?",
+          "choices": [
+            "5",
+            "8",
+            "11",
+            "15"
+          ],
+          "answer": "11",
+          "note": "Project Hail Mary, The Matrix, Captain Phillips, The Truman Show, Top Gun, Eternal Sunshine, Howl's Moving Castle, Whiplash, plus The Emperor's New Groove, Isle of Dogs and Avatar at exactly 4.00★."
+        }
+      ]
+    },
+    {
+      "title": "Name That Movie",
+      "blurb": "Real club reviews, straight from Letterboxd. Which pick is each one about?",
+      "time": 40,
+      "questions": [
+        {
+          "prompt": "Which pick is this review about?",
+          "choices": [
+            "Bullet Train",
+            "Rush Hour",
+            "The Fifth Element",
+            "Baby Driver"
+          ],
+          "answer": "Rush Hour",
+          "note": "Written by David.",
+          "quote": "Imagine the dude from 5th element and master monkey from kung fu panda become police and solve a kidnapping. Great movie!"
+        },
+        {
+          "prompt": "Which pick is this review about?",
+          "choices": [
+            "Captain Phillips",
+            "Top Gun",
+            "Train to Busan",
+            "Avatar"
+          ],
+          "answer": "Captain Phillips",
+          "note": "Written by mawod.",
+          "quote": "Intense. I can see why they have mounted machine guns on cargo ships."
+        },
+        {
+          "prompt": "Which pick is this review about?",
+          "choices": [
+            "Hoodwinked!",
+            "The Emperor's New Groove",
+            "Howl's Moving Castle",
+            "Isle of Dogs"
+          ],
+          "answer": "The Emperor's New Groove",
+          "note": "Written by Jaycoub.",
+          "quote": "Squeak squeak squeak squeaker squeakily squeakerton!🤓☝️"
+        },
+        {
+          "prompt": "Which pick is this review about?",
+          "choices": [
+            "GoodFellas",
+            "Lady Snowblood",
+            "Cool Hand Luke",
+            "Donnie Darko"
+          ],
+          "answer": "Cool Hand Luke",
+          "note": "Written by cartersmiff, who has it in his Top 4.",
+          "quote": "Chock full of sweat, eggs, allegory and symbolism. One of my favorites."
+        },
+        {
+          "prompt": "Which pick is this review about?",
+          "choices": [
+            "Avatar",
+            "Project Hail Mary",
+            "Mickey 17",
+            "The Fifth Element"
+          ],
+          "answer": "Project Hail Mary",
+          "note": "Written by ZickiZach.",
+          "quote": "I want a pet alien. I'd give him snacks and take him on a walk."
+        }
+      ]
+    },
+    {
+      "title": "Top 4",
+      "blurb": "Every Letterboxd profile shows four favorite films. Whose Top 4 is this?",
+      "questions": [
+        {
+          "prompt": "Whose Letterboxd Top 4 is this?",
+          "choices": [
+            "Hope003",
+            "tracie220",
+            "Marlaina",
+            "Darren"
+          ],
+          "answer": "tracie220",
+          "top4": [
+            "I, Robot (2004)",
+            "Now You See Me 2 (2016)",
+            "Tangled (2010)",
+            "Inception (2010)"
+          ]
+        },
+        {
+          "prompt": "Whose Letterboxd Top 4 is this?",
+          "choices": [
+            "MajinJuan",
+            "Blake Mammen",
+            "cartersmiff",
+            "Darren"
+          ],
+          "answer": "MajinJuan",
+          "top4": [
+            "Kill Bill: The Whole Bloody Affair (2004)",
+            "Nacho Libre (2006)",
+            "Oldboy (2003)",
+            "Spider-Man 2 (2004)"
+          ]
+        },
+        {
+          "prompt": "Whose Letterboxd Top 4 is this?",
+          "choices": [
+            "tracie220",
+            "Hope003",
+            "truepeace15",
+            "Marlaina"
+          ],
+          "answer": "Hope003",
+          "note": "Watch out: Tangled is in tracie220's Top 4 too.",
+          "top4": [
+            "San Andreas (2015)",
+            "Twisters (2024)",
+            "Tangled (2010)",
+            "Lilo & Stitch (2002)"
+          ]
+        },
+        {
+          "prompt": "Whose Letterboxd Top 4 is this?",
+          "choices": [
+            "Darren",
+            "Marlaina",
+            "Hope003",
+            "MajinJuan"
+          ],
+          "answer": "Marlaina",
+          "note": "(500) Days of Summer was a club pick, and Marlaina gave it 5★.",
+          "top4": [
+            "(500) Days of Summer (2009)",
+            "Interstellar (2014)",
+            "About Time (2013)",
+            "Forgetting Sarah Marshall (2008)"
+          ]
+        },
+        {
+          "prompt": "Whose Letterboxd Top 4 is this?",
+          "choices": [
+            "Blake Mammen",
+            "cartersmiff",
+            "MajinJuan",
+            "tracie220"
+          ],
+          "answer": "cartersmiff",
+          "note": "Cool Hand Luke was a club pick, and cartersmiff gave it 4.5★.",
+          "top4": [
+            "Strange Brew (1983)",
+            "Cool Hand Luke (1967)",
+            "Blue Velvet (1986)",
+            "It's a Wonderful Life (1946)"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Higher or Lower",
+      "blurb": "Two picks go head to head. Which one got the higher club average?",
+      "time": 20,
+      "questions": [
+        {
+          "prompt": "Which got the higher club average?",
+          "choices": [
+            "Top Gun",
+            "GoodFellas"
+          ],
+          "answer": "Top Gun",
+          "note": "Top Gun 4.17★ (9 ratings) vs GoodFellas 3.16★ (16 ratings)."
+        },
+        {
+          "prompt": "Which got the higher club average?",
+          "choices": [
+            "CODA",
+            "Whiplash"
+          ],
+          "answer": "Whiplash",
+          "note": "Squeaker! Whiplash 4.04★ vs CODA 3.96★, 12 ratings each."
+        },
+        {
+          "prompt": "Which got the higher club average?",
+          "choices": [
+            "Hoodwinked!",
+            "The Emperor's New Groove"
+          ],
+          "answer": "The Emperor's New Groove",
+          "note": "The Emperor's New Groove 4.00★ vs Hoodwinked! 3.58★."
+        },
+        {
+          "prompt": "Which got the higher club average?",
+          "choices": [
+            "The Phantom of the Opera",
+            "You've Got Mail"
+          ],
+          "answer": "You've Got Mail",
+          "note": "You've Got Mail 3.32★ vs The Phantom of the Opera 2.75★."
+        },
+        {
+          "prompt": "Which got the higher club average?",
+          "choices": [
+            "Level 16",
+            "Train to Busan"
+          ],
+          "answer": "Train to Busan",
+          "note": "Train to Busan 3.75★ vs Level 16 3.58★."
+        }
+      ]
+    },
+    {
+      "title": "Who Wrote That?",
+      "blurb": "The Shape of Water edition. Five real reviews of the same movie. Who wrote each one?",
+      "time": 40,
+      "questions": [
+        {
+          "prompt": "Who wrote this review of The Shape of Water?",
+          "choices": [
+            "Darren",
+            "ZickiZach",
+            "John",
+            "mawod"
+          ],
+          "answer": "Darren",
+          "note": "Darren gave it 5★. The club average was 2.78★.",
+          "quote": "what do you think would be the amphibian man's top 4 on letterboxd?"
+        },
+        {
+          "prompt": "Who wrote this review of The Shape of Water?",
+          "choices": [
+            "David",
+            "cartersmiff",
+            "Jaycoub",
+            "Blake Mammen"
+          ],
+          "answer": "cartersmiff",
+          "note": "2★.",
+          "quote": "This jit cracks fish (It's kinda like a version of Lilo and Stitch that's not as fun and you're too embarrassed to watch with your parents.)"
+        },
+        {
+          "prompt": "Who wrote this review of The Shape of Water?",
+          "choices": [
+            "Blake Mammen",
+            "John",
+            "ireneoh04",
+            "tracie220"
+          ],
+          "answer": "Blake Mammen",
+          "note": "1.5★.",
+          "quote": "The Shape of Water? More like The Shape of What the Hell Did I Just Watch."
+        },
+        {
+          "prompt": "Who wrote this review of The Shape of Water?",
+          "choices": [
+            "thatvietartist",
+            "ZickiZach",
+            "MajinJuan",
+            "Darren"
+          ],
+          "answer": "MajinJuan",
+          "note": "4.5★.",
+          "quote": "Water? I hardly know her 💦 A sweet (and salty) tale of forbidden love."
+        },
+        {
+          "prompt": "Who wrote this review of The Shape of Water?",
+          "choices": [
+            "mawod",
+            "tracie220",
+            "John",
+            "David"
+          ],
+          "answer": "tracie220",
+          "note": "3★.",
+          "quote": "So the Russians are the good guys? Cinematically beautiful. Plenty of unsettling moments, but I think that was the goal"
+        }
+      ]
+    },
+    {
+      "title": "The Great Divide",
+      "blurb": "Some picks brought the club together. These ones tore it apart.",
+      "questions": [
+        {
+          "prompt": "Which pick split the club the most, with the biggest spread of ratings?",
+          "choices": [
+            "The Shape of Water",
+            "Donnie Darko",
+            "Mickey 17",
+            "GoodFellas"
+          ],
+          "answer": "Donnie Darko",
+          "note": "Ratings ran from ½★ to 5★. A Dog's Purpose had the same range, but Donnie Darko's ratings were more spread out."
+        },
+        {
+          "prompt": "Someone gave Donnie Darko just ½★. Who?",
+          "choices": [
+            "nrami",
+            "John",
+            "Hope003",
+            "Darren"
+          ],
+          "answer": "Hope003",
+          "note": "thatvietartist and mawod gave it 5★."
+        },
+        {
+          "prompt": "A Dog's Purpose got both a 5★ and a ½★. Who gave it ½★?",
+          "choices": [
+            "thatvietartist",
+            "Jz4495",
+            "Cameron Peters",
+            "Darren"
+          ],
+          "answer": "thatvietartist",
+          "note": "Hope003 gave it the 5★. Jz4495 wasn't far behind at 1★."
+        },
+        {
+          "prompt": "Darren gave this pick 5★, but the club average was under 3★. Which one?",
+          "choices": [
+            "Black Swan",
+            "The Truman Show",
+            "The Shape of Water",
+            "Eternal Sunshine of the Spotless Mind"
+          ],
+          "answer": "The Shape of Water",
+          "note": "Darren 5★ vs the club's 2.78★. Only thatvietartist matched his 5★."
+        }
+      ]
+    },
+    {
+      "title": "The Members' Awards",
+      "blurb": "The envelopes, please. Members with at least 10 club ratings are eligible.",
+      "questions": [
+        {
+          "prompt": "KINDEST CRITIC: who has the highest average rating across the club picks?",
+          "choices": [
+            "MajinJuan",
+            "David",
+            "thatvietartist",
+            "Hope003"
+          ],
+          "answer": "thatvietartist",
+          "note": "4.43★ average over 30 picks, including 22 five-star ratings."
+        },
+        {
+          "prompt": "TOUGHEST CRITIC: who has the lowest average rating across the club picks?",
+          "choices": [
+            "Darren",
+            "nrami",
+            "ZickiZach",
+            "Blake Mammen"
+          ],
+          "answer": "nrami",
+          "note": "3.18★ over 28 picks. Close race: Darren 3.21★, Blake 3.25★, ZickiZach 3.27★."
+        },
+        {
+          "prompt": "PERFECT ATTENDANCE: who rated the most club picks?",
+          "choices": [
+            "Jaycoub",
+            "Jz4495",
+            "tracie220",
+            "mawod"
+          ],
+          "answer": "tracie220",
+          "note": "39 of 40! The only one missing is Somewhere in Time. Jaycoub had 35, Jz4495 34."
+        },
+        {
+          "prompt": "MOST PROLIFIC REVIEWER: who wrote the most reviews of club picks?",
+          "choices": [
+            "mawod",
+            "tracie220",
+            "thatvietartist",
+            "Jaycoub"
+          ],
+          "answer": "Jaycoub",
+          "note": "35 reviews. mawod 32, tracie220 31, thatvietartist 30."
+        },
+        {
+          "prompt": "Which of these regulars has NEVER given a club pick 5★?",
+          "choices": [
+            "tracie220",
+            "mawod",
+            "Hope003",
+            "Darren"
+          ],
+          "answer": "tracie220",
+          "note": "Not one 5★ in 39 ratings. Her highest was 4.5★, for Project Hail Mary."
+        }
+      ]
+    },
+    {
+      "title": "Final Credits",
+      "blurb": "Last round, and it's worth DOUBLE points.",
+      "double": true,
+      "questions": [
+        {
+          "prompt": "How many movies are on the 2026 club list?",
+          "choices": [
+            "32",
+            "36",
+            "40",
+            "44"
+          ],
+          "answer": "40"
+        },
+        {
+          "prompt": "What's the oldest club pick?",
+          "choices": [
+            "Lady Snowblood",
+            "Top Gun",
+            "Cool Hand Luke",
+            "Somewhere in Time"
+          ],
+          "answer": "Cool Hand Luke",
+          "note": "1967. Lady Snowblood is 1973, Somewhere in Time 1980, Top Gun 1986."
+        },
+        {
+          "prompt": "Which club pick came out in 2026?",
+          "choices": [
+            "Mickey 17",
+            "Now You See Me: Now You Don't",
+            "Bullet Train",
+            "Project Hail Mary"
+          ],
+          "answer": "Project Hail Mary",
+          "note": "And it became the club's highest-rated pick."
+        },
+        {
+          "prompt": "Which pick did Darren rate the lowest?",
+          "choices": [
+            "The Vow",
+            "Somewhere in Time",
+            "A Dog's Purpose",
+            "What We Do in the Shadows"
+          ],
+          "answer": "Somewhere in Time",
+          "note": "1★. The other three got 1.5★ from him."
+        }
+      ]
+    }
+  ]
+}
