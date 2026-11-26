@@ -31,6 +31,12 @@ import {
   activeCount,
   unteamed,
   openedAt,
+  qType,
+  shownOrder,
+  answerText,
+  answerGroups,
+  flipAnswers,
+  ORDER_SEP,
   DEFAULT_TIME,
   MAX_POINTS,
   MIN_POINTS,
@@ -423,11 +429,27 @@ function renderRound() {
 
 // --- Question -----------------------------------------------------------------
 
-function questionBody(q, { showAnswer, counts }) {
+function questionBody(q, { showAnswer, counts, items, groups }) {
   const letters = "ABCD";
-  return `
+  const type = qType(q);
+  const extras = `
     ${q.quote ? `<blockquote class="quote">“${esc(q.quote)}”</blockquote>` : ""}
     ${q.top4 ? `<ol class="top4">${q.top4.map((t) => `<li>${esc(t)}</li>`).join("")}</ol>` : ""}
+    ${q.hint ? `<p class="hint">${esc(q.hint)}</p>` : ""}`;
+  if (type === "order") {
+    const list = showAnswer ? q.items : items;
+    return `${extras}
+      ${q.ends ? `<div class="order-ends"><span>${esc(q.ends[0])}</span><span>${esc(q.ends[1])}</span></div>` : ""}
+      <div class="order-list">${list
+        .map((x, i) => `<div class="order-item ${showAnswer ? "right" : ""}"><span class="letter">${showAnswer ? i + 1 : letters[i] || i + 1}</span><span>${esc(x)}</span>${showAnswer && q.meta?.[x] ? `<span class="meta">${esc(q.meta[x])}</span>` : ""}</div>`)
+        .join("")}</div>`;
+  }
+  if (type === "text") {
+    return `${extras}
+      ${showAnswer ? `<div class="text-answer">${esc(q.answer)}</div>` : `<div class="text-blank">Type your answer on your phone</div>`}
+      ${showAnswer && groups?.length ? `<div class="guesses">${groups.slice(0, 12).map((g) => `<span class="guess ${g.ok ? "ok" : ""}">${esc(g.text)}<b>×${g.count}</b></span>`).join("")}</div>` : ""}`;
+  }
+  return `${extras}
     <div class="choices ${q.choices.length === 2 ? "two" : ""}">${q.choices
       .map((c, i) => {
         const right = showAnswer && c === q.answer;
@@ -451,9 +473,16 @@ function revealPanel() {
   return `<div class="reveal">
     ${q.note ? `<p class="note">${esc(q.note)}</p>` : ""}
     <div class="reveal-stats">
-      <span>${st.right} of ${st.answered} got it</span>
+      <span>${st.right} of ${st.answered} got it${st.partial ? `, ${st.partial} partly` : ""}</span>
       ${st.fastest ? `<span>⚡ Fastest: <b>${esc(st.fastest.name)}</b>${st.fastest.team ? ` (${esc(st.fastest.team)})` : ""} in ${st.fastest.secs}s, +${pts(st.fastest.pts)}</span>` : ""}
     </div>
+    ${
+      qType(q) === "text" && answerGroups(qid()).length
+        ? `<div class="review-panel"><b>Only you can see this:</b> tap an answer to flip it between right and wrong. <div class="guesses">${answerGroups(qid())
+            .map((g) => `<button class="guess ${g.ok ? "ok" : ""}" data-flip="${esc(g.key)}">${g.ok ? "✓" : "✗"} ${esc(g.text)}<b>×${g.count}</b></button>`)
+            .join("")}</div></div>`
+        : ""
+    }
     <div class="team-results">${st.teams
       .map((t) => `<div class="team-result"><span class="team-name">${esc(t.team)}</span><span class="team-right">${t.right}/${t.size}</span><b>+${pts(t.pts)}</b></div>`)
       .join("")}</div>
@@ -463,7 +492,8 @@ function revealPanel() {
 function renderQuestion() {
   const q = question();
   const r = round();
-  const counts = state.revealed ? choiceCounts(qid(), q.choices) : null;
+  const counts = state.revealed && qType(q) === "choice" ? choiceCounts(qid(), q.choices) : null;
+  const items = qType(q) === "order" ? shownOrder(q, qid()) : null;
   app.innerHTML = `${topbar(
     state.open
       ? `<span class="live" id="live-count">0 of ${playerCount()} locked in</span><button class="btn small" id="btn-close">Close answers (X)</button>`
@@ -474,12 +504,13 @@ function renderQuestion() {
     <div class="q-head"><span>Round ${state.r + 1}: ${esc(r.title)}</span><span>Question ${questionNo()} of ${totalQuestions()}${r.double ? " · <b class='double'>2×</b>" : ""}</span></div>
     ${state.open ? clockHtml() : ""}
     <h1 class="prompt">${esc(q.prompt)}</h1>
-    ${questionBody(q, { showAnswer: state.revealed, counts })}
-    ${state.revealed ? revealPanel() : `<div class="host-only">Only you can see this: <b>${esc(q.answer)}</b>${q.note ? ` <span class="small">· ${esc(q.note)}</span>` : ""}</div>`}
+    ${questionBody(q, { showAnswer: state.revealed, counts, items, groups: answerGroups(qid()) })}
+    ${state.revealed ? revealPanel() : `<div class="host-only">Only you can see this: <b>${esc(answerText(q))}</b>${q.note ? ` <span class="small">· ${esc(q.note)}</span>` : ""}</div>`}
     <p class="host-hint">${state.open ? "Space to reveal (closes answers)" : state.revealed ? (state.q + 1 < r.questions.length ? "Space for the next question" : "Space for round standings") : "Space to reveal"}</p>
   </main>${lbOverlay()}`;
   wireTopbar();
   document.getElementById("btn-close")?.addEventListener("click", closeAnswers);
+  for (const b of app.querySelectorAll("[data-flip]")) b.addEventListener("click", () => flipAnswers(b.dataset.flip));
   tickClock();
 }
 
@@ -562,8 +593,24 @@ function broadcast() {
     state,
     round: game && state ? { title: round().title, blurb: round().blurb, n: round().questions.length, time: roundTime(), double: !!round().double } : null,
     questionNo: game && state?.screen === "question" ? questionNo() : null,
-    q: q ? { prompt: q.prompt, quote: q.quote || null, top4: q.top4 || null, choices: q.choices, answer: state.revealed ? q.answer : null, note: state.revealed ? q.note : null } : null,
-    counts: q && state.revealed ? choiceCounts(qid(), q.choices) : null,
+    q: q
+      ? {
+          prompt: q.prompt,
+          type: qType(q),
+          quote: q.quote || null,
+          top4: q.top4 || null,
+          hint: q.hint || null,
+          ends: q.ends || null,
+          choices: qType(q) === "choice" ? q.choices : null,
+          shown: qType(q) === "order" ? shownOrder(q, qid()) : null,
+          items: state.revealed && qType(q) === "order" ? q.items : null,
+          meta: state.revealed ? q.meta || null : null,
+          answer: state.revealed ? q.answer : null,
+          note: state.revealed ? q.note : null,
+        }
+      : null,
+    counts: q && state.revealed && qType(q) === "choice" ? choiceCounts(qid(), q.choices) : null,
+    groups: q && state.revealed && qType(q) === "text" ? answerGroups(qid()) : null,
     stats: q && state.revealed ? questionStats(qid()) : null,
     teams: game && state ? teamStandings() : [],
     roundPts: game && state ? Object.fromEntries(aud.teams.map((t) => [t, round().questions.reduce((n, _, i) => n + (aud.revealed.includes(qid(state.r, i)) ? teamPointsOn(qid(state.r, i), t).pts : 0), 0)])) : {},
@@ -624,10 +671,10 @@ function renderBoard() {
       <div class="q-head"><span>Round ${s.r + 1}: ${esc(v.round.title)}</span><span>Question ${v.questionNo} of ${v.game.total}${v.round.double ? " · <b class='double'>2×</b>" : ""}</span></div>
       ${s.open ? `<div class="clock"><div class="clock-fill"></div><span class="clock-num">${v.round.time}</span></div>` : s.revealed ? "" : `<div class="timesup">Time's up</div>`}
       <h1 class="prompt">${esc(q.prompt)}</h1>
-      ${questionBody({ ...q, answer: q.answer }, { showAnswer: s.revealed, counts: v.counts })}
+      ${questionBody(q, { showAnswer: s.revealed, counts: v.counts, items: q.shown, groups: v.groups })}
       ${
         s.revealed
-          ? `<div class="reveal">${q.note ? `<p class="note">${esc(q.note)}</p>` : ""}<div class="reveal-stats"><span>${v.stats.right} of ${v.stats.answered} got it</span>${
+          ? `<div class="reveal">${q.note ? `<p class="note">${esc(q.note)}</p>` : ""}<div class="reveal-stats"><span>${v.stats.right} of ${v.stats.answered} got it${v.stats.partial ? `, ${v.stats.partial} partly` : ""}</span>${
               v.stats.fastest ? `<span>⚡ Fastest: <b>${esc(v.stats.fastest.name)}</b>${v.stats.fastest.team ? ` (${esc(v.stats.fastest.team)})` : ""} in ${v.stats.fastest.secs}s, +${pts(v.stats.fastest.pts)}</span>` : ""
             }</div><div class="team-results">${v.stats.teams.map((t) => `<div class="team-result"><span class="team-name">${esc(t.team)}</span><span class="team-right">${t.right}/${t.size}</span><b>+${pts(t.pts)}</b></div>`).join("")}</div></div>`
           : `<div class="live-big">${v.aud.answered} of ${v.aud.n} locked in</div>`

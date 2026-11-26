@@ -97,6 +97,108 @@ export function speedPoints(ms, seconds = DEFAULT_TIME) {
   return Math.max(MIN_POINTS, Math.round((MAX_POINTS - (MAX_POINTS - MIN_POINTS) * share) / 10) * 10);
 }
 
+
+// ---------------------------------------------------------------------------
+// Question types and checking answers
+// ---------------------------------------------------------------------------
+
+export const qType = (q) => (q.type === "order" || q.type === "text" ? q.type : "choice");
+
+// The same shuffled order for an ordering question on the host, the board and every phone.
+export function shownOrder(q, qid) {
+  const items = q.items || [];
+  let h = 2166136261;
+  for (const ch of String(qid) + items.join("|")) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  const out = items.map((x, i) => [x, i]);
+  for (let i = out.length - 1; i > 0; i--) {
+    h = (Math.imul(h, 1664525) + 1013904223) >>> 0;
+    const j = h % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  // Never show the correct order by accident.
+  if (out.length > 1 && out.every(([, i], k) => i === k)) out.push(out.shift());
+  return out.map(([x]) => x);
+}
+
+export const ORDER_SEP = " › ";
+
+function words(s) {
+  return String(s || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9 ]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .replace(/^(the|a|an) /, "");
+}
+
+// What two typed answers are compared on: lowercase letters and digits only.
+export const answerKey = (s) => words(s).replace(/ /g, "");
+
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 3) return 99;
+  let prev = Array.from({ length: b.length + 1 }, (_, i) => i);
+  let prev2 = prev;
+  for (let i = 1; i <= a.length; i++) {
+    const row = [i];
+    for (let j = 1; j <= b.length; j++) {
+      row[j] = Math.min(prev[j] + 1, row[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      // Swapped neighbours ("speilberg") count as one slip.
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) row[j] = Math.min(row[j], prev2[j - 2] + 1);
+    }
+    prev2 = prev;
+    prev = row;
+  }
+  return prev[b.length];
+}
+
+// A typed answer: exact or close to the answer or any "accept" entry. Longer answers forgive a
+// typo or two; "needs" lists words that all have to appear. The host can flip any answer later.
+export function checkText(q, text) {
+  const guess = answerKey(text);
+  if (!guess) return false;
+  if (Array.isArray(q.needs) && q.needs.length) return q.needs.every((w) => guess.includes(answerKey(w)));
+  const answers = [q.answer, ...(q.accept || [])];
+  // A person's surname on its own is fine ("Spielberg" for Steven Spielberg) unless the question says otherwise.
+  if (!q.exact) for (const a of [...answers]) {
+    const parts = String(a).trim().split(/\s+/);
+    if (parts.length >= 2 && parts[parts.length - 1].length >= 4) answers.push(parts[parts.length - 1]);
+  }
+  for (const a of answers.map(answerKey).filter(Boolean)) {
+    if (/^\d+$/.test(a)) {
+      const n = String(text).replace(/(\d),(\d)/g, "$1$2").match(/\d+/);
+      if (n && n[0] === a) return true;
+      continue;
+    }
+    if (guess === a) return true;
+    if (a.length >= 5 && editDistance(guess, a) <= Math.max(1, Math.floor(a.length / 6))) return true;
+  }
+  return false;
+}
+
+// Grade an answer: { ok, frac } where frac is the share of the points earned.
+// Ordering gives partial credit for every item in the right slot.
+export function grade(q, text) {
+  const t = qType(q);
+  if (t === "order") {
+    const given = String(text).split(ORDER_SEP);
+    const items = q.items || [];
+    if (given.length !== items.length) return { ok: false, frac: 0 };
+    const hits = items.filter((x, i) => given[i] === x).length;
+    return { ok: hits === items.length, frac: hits / items.length };
+  }
+  if (t === "text") {
+    const ok = checkText(q, text);
+    return { ok, frac: ok ? 1 : 0 };
+  }
+  const ok = text === q.answer;
+  return { ok, frac: ok ? 1 : 0 };
+}
+
+export const answerText = (q) => (qType(q) === "order" ? (q.items || []).join(ORDER_SEP) : q.answer);
+
 // ---------------------------------------------------------------------------
 // Connection
 // ---------------------------------------------------------------------------
@@ -221,10 +323,10 @@ function handle(m) {
     const text = String(m.text || "")
       .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 80);
+      .slice(0, 160);
     if (!text) return;
-    const ok = text === c.q.answer;
-    book[m.id] = { text, sp: speedPoints(now - opened, c.time), ok, at: now - opened, team: p.team };
+    const g = grade(c.q, text);
+    book[m.id] = { text, key: answerKey(text), sp: speedPoints(now - opened, c.time), ok: g.ok, frac: g.frac, at: now - opened, team: p.team };
     save();
     onChange();
     publishSoon();
@@ -235,7 +337,40 @@ function handle(m) {
 // Scores
 // ---------------------------------------------------------------------------
 
-export const pointsFor = (g, double = false) => (g.ok ? g.sp * (double ? 2 : 1) : 0);
+export const pointsFor = (g, double = false) => {
+  const frac = g.ok ? 1 : g.frac || 0;
+  return Math.round((g.sp * frac * (double ? 2 : 1)) / 10) * 10;
+};
+
+// The host thinks a group of typed answers was marked wrong (or right) by mistake.
+export function flipAnswers(key) {
+  const c = current;
+  if (!c) return;
+  const book = aud.books[c.qid] || {};
+  const group = Object.values(book).filter((g) => g.key === key);
+  if (!group.length) return;
+  const ok = !group[0].ok;
+  for (const g of group) {
+    g.ok = ok;
+    g.frac = ok ? 1 : 0;
+  }
+  save();
+  lastSent = "";
+  publishSoon();
+  onChange();
+}
+
+// The current question's typed answers, grouped, for the host's review panel.
+export function answerGroups(qid = current?.qid) {
+  const book = aud.books[qid] || {};
+  const groups = new Map();
+  for (const g of Object.values(book)) {
+    const k = g.key || g.text;
+    if (!groups.has(k)) groups.set(k, { key: k, text: g.text, ok: g.ok, count: 0 });
+    groups.get(k).count++;
+  }
+  return [...groups.values()].sort((a, b) => b.ok - a.ok || b.count - a.count);
+}
 
 let doubleFor = () => false;
 // app.js tells us which questions are worth double.
@@ -325,6 +460,7 @@ export function questionStats(qid = current?.qid) {
   return {
     answered: list.length,
     right: right.length,
+    partial: list.filter(([, g]) => !g.ok && g.frac > 0).length,
     fastest: best ? { name: aud.players[best[0]]?.name || "?", team: aud.players[best[0]]?.team || "", pts: pointsFor(best[1], d), secs: Math.round(best[1].at / 100) / 10 } : null,
     teams: aud.teams.map((t) => ({ team: t, ...teamPointsOn(qid, t) })).sort((a, b) => b.pts - a.pts),
   };
@@ -422,12 +558,16 @@ function publishNow() {
           left: c.open ? Math.max(0, c.time * 1000 - (Date.now() - (aud.opened[c.qid] || Date.now()))) : 0,
           round: c.round || "",
           text: q.prompt,
+          type: qType(q),
           quote: q.quote || null,
           top4: q.top4 || null,
-          choices: q.choices,
+          choices: qType(q) === "choice" ? q.choices : null,
+          items: qType(q) === "order" ? shownOrder(q, c.qid) : null,
+          ends: q.ends || null,
+          hint: q.hint || null,
         }
       : null,
-    answer: c && revealed ? q.answer : null,
+    answer: c && revealed ? answerText(q) : null,
     stats: c && revealed ? questionStats(c.qid) : null,
   };
   const json = JSON.stringify(msg);

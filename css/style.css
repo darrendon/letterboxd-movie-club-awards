@@ -1044,3 +1044,115 @@ select {
   font-size: 0.8rem;
   color: var(--muted);
 }
+
+/* --- Ordering and typed answers ----------------------------------------------- */
+
+.pp-order-answer,
+.order-answer {
+  margin: 0.2em 0 0;
+  padding-left: 1.4em;
+  font-weight: 700;
+}
+.pp-order-answer li,
+.order-answer li {
+  padding: 0.15em 0;
+}
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.order-item {
+  display: flex;
+  align-items: center;
+  gap: 0.8em;
+  padding: 0.7em 1.1em;
+  background: var(--panel);
+  border: 2px solid var(--line);
+  border-radius: var(--radius);
+  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-weight: 600;
+}
+.order-item .letter {
+  flex: none;
+  width: 1.7em;
+  height: 1.7em;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--gold);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 0.85em;
+}
+.order-item.right {
+  border-color: var(--green);
+}
+.order-item.right .letter {
+  background: var(--green);
+  color: #052;
+}
+.order-item .meta {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.75em;
+  font-weight: 400;
+}
+.order-ends {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+.text-answer {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  color: var(--green);
+  font-weight: 800;
+  padding: 0.3em 0;
+}
+.text-blank {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  padding: 1.2em;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+.guesses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.guess {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.3em 0.8em;
+  font-size: 0.9rem;
+}
+.guess.ok {
+  border-color: var(--green);
+  color: var(--green);
+}
+.guess b {
+  margin-left: 0.4em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.review-panel {
+  border: 2px dashed var(--gold-dark);
+  border-radius: var(--radius);
+  padding: 0.8em 1em;
+}
+.review-panel .guess {
+  cursor: pointer;
+}
+.hint {
+  color: var(--muted);
+  font-size: 1rem;
+}

@@ -5,7 +5,7 @@
 // the answer is revealed on the TV. Faster right answers are worth more.
 
 import { Relay, brokerFor, cleanCode, TOPIC_ROOT } from "./relay.js?v=__V__";
-import { speedPoints, MAX_POINTS, MIN_POINTS, DEFAULT_TIME } from "./audience.js?v=__V__";
+import { speedPoints, MAX_POINTS, MIN_POINTS, DEFAULT_TIME, ORDER_SEP } from "./audience.js?v=__V__";
 
 const STORE_KEY = "mcawards.play.v1";
 
@@ -45,6 +45,7 @@ let status = "idle"; // idle | connecting | live | down
 let view = null; // the latest message from the host
 let pending = null; // { qid, text } sent but not confirmed yet
 let picked = null; // the option tapped but not locked in yet
+let ordered = null; // { qid, list: [items placed so far] } for ordering questions
 let joinError = "";
 let lastJoinSent = 0;
 let resendTimer = null;
@@ -75,6 +76,7 @@ function connect() {
       }
       if (pending && (pending.qid !== m.q?.qid || mine?.g)) pending = null;
       if (picked && picked.qid !== m.q?.qid) picked = null;
+      if (ordered && ordered.qid !== m.q?.qid) ordered = null;
       // If the host dropped the team we picked, pick again.
       if (me.team && m.teamList && !m.teamList.includes(me.team)) {
         me.team = "";
@@ -188,6 +190,7 @@ function questionHtml(mine) {
     <div class="pp-text">${esc(q.text)}</div>
     ${q.quote ? `<blockquote class="pp-quote">“${esc(q.quote)}”</blockquote>` : ""}
     ${q.top4 ? `<ol class="pp-top4">${q.top4.map((t) => `<li>${esc(t)}</li>`).join("")}</ol>` : ""}
+    ${q.hint ? `<p class="small">${esc(q.hint)}</p>` : ""}
     ${q.revealed ? revealHtml(mine) : ""}
   </div>`;
 }
@@ -200,8 +203,13 @@ function revealHtml(mine) {
     line = g[0] ? `<p class="pp-res ok">✓ You got it! <strong>+${pts(g[1])}</strong></p>` : `<p class="pp-res no">✗ You said “${esc(g[2])}”</p>`;
   }
   const team = st?.teams?.find((t) => t.team === me.team);
+  const ans =
+    view.q.type === "order"
+      ? `<ol class="pp-order-answer">${String(view.answer).split(ORDER_SEP).map((x) => `<li>${esc(x)}</li>`).join("")}</ol>`
+      : esc(view.answer);
+  if (Array.isArray(g) && !g[0] && g[1] > 0) line = `<p class="pp-res ok">Partly right: <strong>+${pts(g[1])}</strong></p>`;
   return `<div class="pp-reveal">
-    <div class="pp-answer"><span>Answer</span>${esc(view.answer)}</div>
+    <div class="pp-answer"><span>${view.q.type === "order" ? (view.q.ends ? esc(view.q.ends[0]) + " → " + esc(view.q.ends[1]) : "Right order") : "Answer"}</span>${ans}</div>
     ${line}
     ${team ? `<p class="small">${esc(me.team)}: ${team.right}/${team.size} right, <b>+${pts(team.pts)}</b> team points</p>` : ""}
     ${st ? `<p class="small">${st.right} of ${st.answered} got it${st.fastest ? ` · fastest: ${esc(st.fastest.name)} in ${st.fastest.secs}s` : ""}</p>` : ""}
@@ -234,6 +242,8 @@ function renderForm(mine) {
   if (view && !view.closed && q?.open) {
     if (mine?.g) key = "locked:" + q.qid;
     else if (pending?.qid === q.qid) key = "sending:" + q.qid;
+    else if (q.type === "order") key = "order:" + q.qid + ":" + (ordered?.qid === q.qid ? ordered.list.join("|") : "");
+    else if (q.type === "text") key = "text:" + q.qid;
     else key = "choices:" + q.qid + ":" + (picked?.qid === q.qid ? picked.text : "");
   } else if (q && !q.open && !q.revealed) key = "closed:" + q.qid;
   if (key === formKey) return updateWorth();
@@ -254,9 +264,54 @@ function renderForm(mine) {
       };
     }
     document.getElementById("pp-lock").onclick = () => sel && sendAnswer(sel);
+  } else if (key.startsWith("order")) {
+    const list = ordered?.qid === q.qid ? ordered.list : [];
+    const items = q.items || [];
+    const done = list.length === items.length;
+    el.innerHTML = `<div class="pp-form">
+      <label>Tap in order${q.ends ? `: <b>${esc(q.ends[0])}</b> first` : ""} <span class="pp-worth">worth <b id="pp-worth"></b> · <span id="pp-left"></span>s</span></label>
+      <div class="pp-choices">${items
+        .map((c) => {
+          const n = list.indexOf(c);
+          return `<button class="pp-choice ${n >= 0 ? "on" : ""}" data-item="${esc(c)}"><span>${n >= 0 ? n + 1 : ""}</span>${esc(c)}</button>`;
+        })
+        .join("")}</div>
+      <div class="row"><button class="btn primary big" id="pp-lock" ${done ? "" : "disabled"}>${done ? "Lock it in" : `${list.length} of ${items.length} placed`}</button></div>
+      ${list.length ? `<p class="small"><button class="link" id="pp-clear">Start over</button></p>` : ""}
+    </div>`;
+    for (const b of el.querySelectorAll(".pp-choice")) {
+      b.onclick = () => {
+        const cur = ordered?.qid === q.qid ? [...ordered.list] : [];
+        const i = cur.indexOf(b.dataset.item);
+        if (i >= 0) cur.splice(i, 1);
+        else cur.push(b.dataset.item);
+        ordered = { qid: q.qid, list: cur };
+        render();
+      };
+    }
+    document.getElementById("pp-clear")?.addEventListener("click", () => {
+      ordered = { qid: q.qid, list: [] };
+      render();
+    });
+    document.getElementById("pp-lock").onclick = () => done && sendAnswer(list.join(ORDER_SEP));
+  } else if (key.startsWith("text")) {
+    el.innerHTML = `<form class="pp-form" id="pp-ans" autocomplete="off">
+      <label for="pp-text">Your answer <span class="pp-worth">worth <b id="pp-worth"></b> · <span id="pp-left"></span>s</span></label>
+      <input id="pp-text" maxlength="80" autocorrect="off" spellcheck="false" enterkeyhint="send" placeholder="Type your answer">
+      <button class="btn primary big" type="submit">Lock it in</button>
+      <p class="small">Spelling doesn't have to be perfect. Last names are fine for people.</p>
+    </form>`;
+    document.getElementById("pp-ans").onsubmit = (e) => {
+      e.preventDefault();
+      const text = document.getElementById("pp-text").value.trim();
+      if (!text) return;
+      document.getElementById("pp-text").blur();
+      sendAnswer(text);
+    };
   } else if (key.startsWith("locked") || key.startsWith("sending")) {
     const text = pending?.text || me.last?.[q.qid] || "";
-    el.innerHTML = `<div class="pp-locked">${key.startsWith("sending") ? "Sending…" : "🔒 Locked in"}${text ? `<strong>${esc(text)}</strong>` : ""}<span class="small">You'll find out when the answer is revealed on the TV.</span></div>`;
+    const shown = q.type === "order" ? `<ol class="pp-order-answer">${text.split(ORDER_SEP).map((x) => `<li>${esc(x)}</li>`).join("")}</ol>` : `<strong>${esc(text)}</strong>`;
+    el.innerHTML = `<div class="pp-locked">${key.startsWith("sending") ? "Sending…" : "🔒 Locked in"}${text ? shown : ""}<span class="small">You'll find out when the answer is revealed on the TV.</span></div>`;
   } else if (key.startsWith("closed")) {
     el.innerHTML = `<div class="pp-locked">⏱ Time's up<span class="small">Eyes on the TV for the answer.</span></div>`;
   } else {
@@ -270,7 +325,7 @@ function updateWorth() {
   if (w) w.textContent = pts(worthNow());
   const l = document.getElementById("pp-left");
   if (l) l.textContent = secondsLeft();
-  if (view?.q?.open && secondsLeft() === 0 && formKey.startsWith("choices")) {
+  if (view?.q?.open && secondsLeft() === 0 && /^(choices|order|text)/.test(formKey)) {
     formKey = "";
     document.getElementById("pp-form").innerHTML = `<div class="pp-locked">⏱ Time's up<span class="small">Eyes on the TV for the answer.</span></div>`;
   }

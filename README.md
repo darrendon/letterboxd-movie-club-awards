@@ -14,6 +14,7 @@ The site republishes itself on GitHub Pages whenever you change a file on the `m
 ### Scoring
 
 - A right answer is worth **1,000 points** if it's locked in right away, dropping to **100** as the clock runs out (30 seconds by default). Wrong answers and no answer are worth 0.
+- Ordering questions give partial credit: each item in the right slot earns a quarter (or a third, or a fifth) of the points.
 - A **team's** score on a question is the **average** of its players' points, so a team of three can beat a team of six.
 - A round marked **double** counts twice. Everyone also has an individual score for the MVP race.
 - Answers close when the clock runs out, when you press **X**, or when you reveal.
@@ -32,7 +33,7 @@ Messages go through free public relays that anyone could listen in on, so the an
 
 ## The questions
 
-`games/awards.json` holds the 8 rounds. Edit it on github.com with the pencil icon and commit; the site updates on its own. Every question is multiple choice:
+`games/awards.json` holds the 8 rounds. Edit it on github.com with the pencil icon and commit; the site updates on its own. There are three kinds of question. Multiple choice:
 
 ```json
 {
@@ -43,12 +44,34 @@ Messages go through free public relays that anyone could listen in on, so the an
 }
 ```
 
+Type-in, checked automatically (capitals and punctuation don't matter, longer answers forgive a typo, a surname alone counts for a person, and `accept` lists other right answers). After the reveal the host sees every answer given and can tap one to flip it between right and wrong:
+
+```json
+{ "type": "text", "prompt": "Who directed Get Out?", "answer": "Jordan Peele" }
+```
+
+Ordering, where players tap the items in order. Each item in the right slot earns a share of the points:
+
+```json
+{
+  "type": "order",
+  "prompt": "Put these Best Picture winners in order of when they won.",
+  "items": ["Titanic", "Gladiator", "The Departed", "Parasite"],
+  "ends": ["Earliest", "Most recent"],
+  "meta": { "Titanic": "1997", "Gladiator": "2000", "The Departed": "2006", "Parasite": "2019" }
+}
+```
+
 | Field | What it does |
 | --- | --- |
-| `prompt`, `choices`, `answer` | The question, 2 to 4 options, and the right one (spelled exactly as in `choices`) |
+| `prompt` | The question |
+| `choices`, `answer` | Multiple choice: 2 to 4 options and the right one (spelled exactly as in `choices`) |
+| `answer`, `accept`, `needs`, `exact` | Type-in: the answer, other accepted answers, words that must all appear, and `exact: true` to turn off the surname shortcut |
+| `items`, `ends`, `meta` | Ordering: the items in the right order, labels for the two ends, and a small note shown next to each item after the reveal |
 | `note` | Small print shown with the answer |
-| `quote` | A review shown in a quote box (for "name that movie" and "who wrote that") |
-| `top4` | Four film titles shown as posters (for "whose Top 4 is this") |
+| `hint` | A line under the question |
+| `quote` | A review shown in a quote box |
+| `top4` | Four film titles shown as posters |
 
 A round has a `title`, a `blurb`, its `questions`, and optionally `time` (seconds per question) and `double: true`.
 
